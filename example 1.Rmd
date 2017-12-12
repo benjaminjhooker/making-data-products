@@ -1,0 +1,53 @@
+---
+title: "Leaflet Example: US Farmers Markets"
+author: "Benjamin J. Hooker"
+date: "December 12, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE, message= FALSE, warning= FALSE}
+library(leaflet)
+library(dplyr)
+
+```
+
+```{r, echo = FALSE, message= FALSE, results= FALSE, warning = FALSE}
+df1 <- read.csv("https://apps.ams.usda.gov/FarmersMarketsExport/ExcelExport.aspx")
+
+df2 <- data.frame(lat = df1$y, lng = df1$x, wic = df1$WIC, city = df1$city)
+```
+
+```{r, echo = FALSE, message= FALSE, results= FALSE, warning = FALSE}
+farmIcon <- makeIcon(
+        iconUrl = "http://feedus.media/wp/wp-content/uploads/leaflet-maps-marker-icons/csafarmmarket_pin.png",
+        iconWidth = 100, iconHeight = 100,
+        iconAnchorX = 50, iconAnchorY = 50
+)
+
+df2 <- df2 %>% mutate(col = ifelse(df2$wic == "N", "red", "green"))
+
+icon <- awesomeIcons(
+        icon = "ios-close",
+        iconColor = "black",
+        library = "ion",
+        markerColor = df2$col
+)
+```
+
+```{r, echo = FALSE, message= FALSE, warning = FALSE}
+df2 %>%
+        leaflet() %>%
+        addTiles() %>%
+        addAwesomeMarkers(icon = icon,
+                          clusterOptions = markerClusterOptions(),
+                          popup = df2$city) %>%
+        addLegend(labels = c("Yes", "No"), colors =c("green", "red"),
+                  title = "Accepts WIC?")
+
+```
+
+The data was made available through: https://apps.ams.usda.gov/FarmersMarketsExport/ExcelExport.aspx and retrieved on 12 December 2017.
